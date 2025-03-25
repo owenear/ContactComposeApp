@@ -2,18 +2,18 @@ package com.example.contactcomposeapp
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,23 +24,45 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.contactcomposeapp.ui.theme.ContactComposeAppTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val contact = Contact(
+            name = "Василий",
+            surname = "Алибабаевич",
+            familyName = "Пупкин",
+            imageRes= R.drawable.picture,
+            isFavorite = true,
+            phone = "+7 949 000 00 01",
+            address = "г.Донецк, ул.Артема, 155",
+            email = "pupk_in@yandex.com",
+        )
+
+        setContent {
+            ContactComposeAppTheme {
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    ContactDetails(contact, modifier = Modifier.padding(innerPadding))
+                }
+            }
+        }
+
     }
 }
 
 @Composable
-fun ContactDetails(contact: Contact) {
+fun ContactDetails(contact: Contact, modifier: Modifier = Modifier) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.weight(0.3f)) {
             Box(contentAlignment = Alignment.Center,
-                modifier = Modifier.padding(12.dp)) {
+                modifier = Modifier.padding(12.dp).size(96.dp, 96.dp)) {
                 if (contact.imageRes == null) {
                     Image(
                         painter = painterResource(id = R.drawable.circle),
@@ -55,11 +77,12 @@ fun ContactDetails(contact: Contact) {
                     Image(
                         painter = painterResource(contact.imageRes),
                         contentDescription = null,
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
             }
             val initials = if (contact.surname.isNullOrEmpty()) contact.name
-            else contact.name + " " + contact.surname
+            else "${contact.name} ${contact.surname}"
             Text(initials, style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold)
             Row {
@@ -75,55 +98,41 @@ fun ContactDetails(contact: Contact) {
             }
         }
         Column(
-            modifier = Modifier.fillMaxWidth().padding(0.dp, 24.dp, 0.dp, 0.dp),
+            modifier = Modifier.weight(0.7f).padding(0.dp, 24.dp, 0.dp, 0.dp),
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.Top) {
-            Row(modifier = Modifier.padding(0.dp,8.dp)) {
-                Box(modifier = Modifier.weight(0.5f),
-                    contentAlignment = Alignment.TopEnd) {
-                    Text(text = stringResource(id = R.string.phone),
-                        fontStyle = FontStyle.Italic,
-                        style = MaterialTheme.typography.bodyLarge)
-                }
-                Box(modifier = Modifier.weight(0.5f).padding(12.dp, 0.dp),
-                    contentAlignment = Alignment.TopStart) {
-                    Text(contact.phone,style = MaterialTheme.typography.bodyLarge)
-                }
-            }
-            Row(modifier = Modifier.height(48.dp)) {
-                Box(modifier = Modifier.weight(0.5f).fillMaxHeight(),
-                    contentAlignment = Alignment.CenterEnd) {
-                    Text(stringResource(id = R.string.address),
-                        fontStyle = FontStyle.Italic,
-                        style = MaterialTheme.typography.bodyLarge)
-                }
-                Box(modifier = Modifier.weight(0.5f).padding(12.dp, 0.dp),
-                    contentAlignment = Alignment.CenterStart) {
-                    Text(text = contact.address, maxLines = 2,
-                        style = MaterialTheme.typography.bodyLarge)
-                }
-            }
-            Row(modifier = Modifier.padding(0.dp,8.dp)) {
-                if (!contact.email.isNullOrEmpty()) {
-                    Box(modifier = Modifier.weight(0.5f),
-                        contentAlignment = Alignment.CenterEnd) {
-                        Text(stringResource(id = R.string.email), fontStyle = FontStyle.Italic,
-                            style = MaterialTheme.typography.bodyLarge)
-                    }
-                    Box(modifier = Modifier.weight(0.5f).padding(12.dp, 0.dp),
-                        contentAlignment = Alignment.CenterStart) {
-                        Text(contact.email, style = MaterialTheme.typography.bodyLarge)
-                    }
-                }
+
+            RowInfo(stringResource(id = R.string.phone), contact.phone)
+            RowInfo(stringResource(id = R.string.address), contact.address)
+            if (!contact.email.isNullOrEmpty()) {
+                RowInfo(stringResource(id = R.string.email), contact.email)
             }
         }
     }
 }
 
+@Composable
+fun RowInfo(contactType: String, contactInfo: String) {
+    Row(modifier = Modifier.padding(0.dp,8.dp)) {
+        Box(modifier = Modifier.weight(0.5f).align(Alignment.CenterVertically),
+            contentAlignment = Alignment.CenterEnd) {
+            Text(contactType,
+                fontStyle = FontStyle.Italic,
+                style = MaterialTheme.typography.bodyLarge)
+        }
+        Box(modifier = Modifier.weight(0.5f).padding(12.dp, 0.dp),
+            contentAlignment = Alignment.CenterStart) {
+            Text(text = contactInfo,
+                style = MaterialTheme.typography.bodyLarge)
+        }
+    }
+}
+
+
 @Preview(showBackground = true)
 @Composable
 fun ContactDetailsPreview1() {
-    val contact1 = Contact(
+    val contact = Contact(
         name = "Василий",
         surname = "Алибабаевич",
         familyName = "Пупкин",
@@ -133,13 +142,13 @@ fun ContactDetailsPreview1() {
         address = "г.Донецк, ул.Артема, 155",
         email = "pupk_in@yandex.com",
     )
-    ContactDetails(contact1)
+    ContactDetails(contact)
 }
 
 @Preview(showBackground = true)
 @Composable
 fun ContactDetailsPreview2() {
-    val contact1 = Contact(
+    val contact = Contact(
         name = "Василий",
         surname = null,
         familyName = "Пупкин",
@@ -149,5 +158,5 @@ fun ContactDetailsPreview2() {
         address = "г.Донецк, ул.Артема, 155",
         email = null,
     )
-    ContactDetails(contact1)
+    ContactDetails(contact)
 }
